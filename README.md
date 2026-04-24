@@ -92,6 +92,11 @@ To launch the Streamlit dashboard:
 streamlit run app.py
 ```
 
+You can also access the deployed dashboard here:
+
+[Customer 360 Dashboard](https://analyticsengineerchallengeartefact-4e5qq4dehxfwj3kuztvdwm.streamlit.app/)
+
+
 The dashboard provides:
 
 - high-level KPIs
