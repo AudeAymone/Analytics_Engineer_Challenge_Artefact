@@ -24,7 +24,18 @@ def load_data() -> pd.DataFrame:
     Returns:
         The Customer 360 dataset as a pandas DataFrame.
     """
-    return pd.read_csv(DATA_PATH)
+    dataframe = pd.read_csv(DATA_PATH)
+    dataframe["last_transaction_date"] = pd.to_datetime(
+        dataframe["last_transaction_date"],
+        errors="coerce",
+    )
+    dataframe["digital_engagement_label"] = dataframe["is_digital_engaged"].map(
+        {True: "Digitally Engaged", False: "Not Digitally Engaged"},
+    )
+    dataframe["digital_engagement_label"] = dataframe[
+        "digital_engagement_label"
+    ].fillna("Unknown")
+    return dataframe
 
 
 def render_kpis(dataframe: pd.DataFrame) -> None:
@@ -105,13 +116,75 @@ def render_portfolio_view(dataframe: pd.DataFrame) -> None:
         st.plotly_chart(fig, use_container_width=True)
 
 
+def render_engagement_view(dataframe: pd.DataFrame) -> None:
+    """Render engagement and channel-usage charts.
+
+    Args:
+        dataframe: Filtered Customer 360 dataset.
+    """
+    st.header("2. Engagement View")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig = px.histogram(
+            dataframe,
+            x="preferred_channel",
+            color="digital_engagement_label",
+            barmode="group",
+            title="Preferred Channel Mix",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        fig = px.histogram(
+            dataframe,
+            x="digital_engagement_label",
+            title="Digital Engagement Distribution",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        recency_df = (
+            dataframe.dropna(subset=["last_transaction_date"])
+            .assign(
+                transaction_month=lambda df: df["last_transaction_date"].dt.to_period("M").astype(str)
+            )
+            .groupby("transaction_month", as_index=False)
+            .size()
+            .rename(columns={"size": "customer_count"})
+        )
+
+        fig = px.bar(
+            recency_df,
+            x="transaction_month",
+            y="customer_count",
+            title="Most Recent Transaction Month",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col2:
+        fig = px.scatter(
+            dataframe,
+            x="nb_transactions",
+            y="nb_interactions",
+            color="digital_engagement_label",
+            size="nb_complaints",
+            hover_data=["customer_id", "full_name", "preferred_channel"],
+            title="Transactions vs Service Interactions",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+
 def render_risk_view(dataframe: pd.DataFrame) -> None:
     """Render churn-risk charts.
 
     Args:
         dataframe: Filtered Customer 360 dataset.
     """
-    st.header("2. Retention / Risk Signals")
+    st.header("3. Retention / Risk Signals")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -140,7 +213,7 @@ def render_next_best_action(dataframe: pd.DataFrame) -> None:
     Args:
         dataframe: Filtered Customer 360 dataset.
     """
-    st.header("3. Cross-sell / Upsell Opportunities")
+    st.header("4. Cross-sell / Upsell Opportunities")
     fig = px.histogram(
         dataframe,
         x="next_best_action",
@@ -155,7 +228,7 @@ def render_priority_customers(dataframe: pd.DataFrame) -> None:
     Args:
         dataframe: Filtered Customer 360 dataset.
     """
-    st.header("4. Priority Customers")
+    st.header("5. Priority Customers")
 
     priority_df = dataframe[
         (dataframe["customer_value_segment"] == "High Value")
@@ -186,7 +259,7 @@ def render_customer_detail(dataframe: pd.DataFrame) -> None:
     Args:
         dataframe: Filtered Customer 360 dataset.
     """
-    st.header("5. Individual Customer 360")
+    st.header("6. Individual Customer 360")
 
     customer = st.selectbox(
         "Select customer",
@@ -221,6 +294,7 @@ def main() -> None:
 
     filtered_df = render_filters(dataframe)
     render_portfolio_view(filtered_df)
+    render_engagement_view(filtered_df)
     render_risk_view(filtered_df)
     render_next_best_action(filtered_df)
     render_priority_customers(filtered_df)
