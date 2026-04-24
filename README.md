@@ -20,12 +20,14 @@ The project:
 | Path | Description |
 |---|---|
 | `data/starter_dataset.xlsx` | Source workbook used to create the raw tables |
+| `data/digital_events.csv` | Synthetic digital-event enrichment used for engagement analytics |
 | `sql/01_create_sources.sql` | Loads each Excel sheet into DuckDB source tables |
 | `sql/02_customer_features.sql` | Builds aggregated customer-level features |
 | `sql/03_customer_360.sql` | Builds the final Customer 360 model |
 | `sql/04_validation_queries.sql` | Validation and business review queries |
 | `run_sql.py` | Runs the SQL pipeline and exports the final CSV |
 | `app.py` | Streamlit dashboard for the final dataset |
+| `ai_assistant.py` | Grounded AI assistant for Customer 360 questions |
 | `requirements.txt` | Python dependencies |
 | `docs/semantic_layer.md` | Business definitions and semantic rules |
 | `docs/data_dictionary.md` | Field-by-field dictionary for `customer_360` |
@@ -47,6 +49,7 @@ It combines:
 - card usage metrics
 - complaint and interaction signals
 - commercial offer metrics
+- synthetic digital engagement events
 - derived business segments and recommended actions
 
 ## Core Derived Fields
@@ -113,6 +116,38 @@ The dashboard includes:
 - risk analysis charts
 - priority customer views
 - an individual customer 360 drill-down
+- a grounded AI assistant for business questions
+
+## AI Assistant
+
+The dashboard includes a grounded AI assistant built on top of the filtered
+`customer_360` view.
+
+It can support questions such as:
+
+- Which customers look healthy today but show early signs of churn?
+- Which customers should the bank prioritize for a personal loan offer?
+- Which customers should the bank prioritize for a card offer?
+- Why is this customer flagged as at-risk?
+- Why is this customer flagged as cross-sell eligible?
+- What additional data would most improve the quality of the Customer 360 recommendations?
+
+To use the assistant with Ollama:
+
+```bash
+ollama pull mistral
+ollama serve
+```
+
+Then launch the dashboard with:
+
+```bash
+export OLLAMA_MODEL="mistral"
+streamlit run app.py
+```
+
+The app calls the Ollama local API at `http://localhost:11434/api/generate`.
+If Ollama is not available, the assistant falls back to local rule-based answers.
 
 ## Validation
 
@@ -139,3 +174,4 @@ They help review:
 - All monetary amounts are expressed in `XOF`.
 - The model is rule-based and designed for analytics and business review.
 - The Bash activation command above is intended for Git Bash or a similar Bash shell on Windows.
+- The AI assistant uses Ollama locally when available.

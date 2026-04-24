@@ -15,14 +15,21 @@ SELECT
         ELSE 'Low Value'
     END AS customer_value_segment,
 
-    -- Flags whether the customer uses at least one digital channel.
+    -- Flags whether the customer uses at least one digital channel or recent digital event.
     CASE
         WHEN mobile_app_active = TRUE
           OR internet_banking_active = TRUE
           OR mobile_money_linked = TRUE
+          OR nb_digital_events_30d > 0
         THEN TRUE
         ELSE FALSE
     END AS is_digital_engaged,
+
+    -- Flags customers who have little or no recent digital activity.
+    CASE
+        WHEN COALESCE(nb_digital_events_30d, 0) = 0 THEN TRUE
+        ELSE FALSE
+    END AS is_digitally_dormant,
 
     -- Classifies customers based on transaction activity volume.
     CASE
@@ -54,7 +61,7 @@ SELECT
           AND monthly_income_xof >= 500000
           AND max_days_past_due = 0
         THEN 'Personal Loan Offer'
-        WHEN is_digital_engaged = FALSE THEN 'Digital Activation'
+        WHEN is_digitally_dormant = TRUE THEN 'Digital Activation'
         WHEN nb_complaints > 0 THEN 'Service Recovery'
         ELSE 'Savings / Loyalty Offer'
     END AS next_best_action

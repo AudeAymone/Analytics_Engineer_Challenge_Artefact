@@ -83,6 +83,37 @@ offer_features AS (
         SUM(expected_value_xof) AS total_expected_offer_value_xof
     FROM offers
     GROUP BY customer_id
+),
+
+digital_reference_date AS (
+    -- Captures the latest available digital event to anchor recent-activity windows.
+    SELECT
+        MAX(CAST(event_datetime AS TIMESTAMP)) AS max_event_datetime
+    FROM digital_events
+),
+
+digital_features AS (
+    -- Aggregates digital usage recency, frequency, and failed-event signals.
+    SELECT
+        de.customer_id,
+        COUNT(*) AS nb_digital_events,
+        MAX(CAST(de.event_datetime AS TIMESTAMP)) AS last_digital_event_date,
+        SUM(
+            CASE
+                WHEN CAST(de.event_datetime AS TIMESTAMP) >= dr.max_event_datetime - INTERVAL 30 DAY THEN 1
+                ELSE 0
+            END
+        ) AS nb_digital_events_30d,
+        SUM(
+            CASE
+                WHEN CAST(de.event_datetime AS TIMESTAMP) >= dr.max_event_datetime - INTERVAL 30 DAY
+                 AND success_flag = FALSE THEN 1
+                ELSE 0
+            END
+        ) AS nb_failed_digital_events_30d
+    FROM digital_events de
+    CROSS JOIN digital_reference_date dr
+    GROUP BY de.customer_id
 )
 
 -- Combines customer profile fields with all aggregated feature sets.
@@ -127,7 +158,12 @@ SELECT
 
     COALESCE(o.nb_offers, 0) AS nb_offers,
     COALESCE(o.nb_accepted_offers, 0) AS nb_accepted_offers,
-    COALESCE(o.total_expected_offer_value_xof, 0) AS total_expected_offer_value_xof
+    COALESCE(o.total_expected_offer_value_xof, 0) AS total_expected_offer_value_xof,
+
+    COALESCE(d.nb_digital_events, 0) AS nb_digital_events,
+    d.last_digital_event_date,
+    COALESCE(d.nb_digital_events_30d, 0) AS nb_digital_events_30d,
+    COALESCE(d.nb_failed_digital_events_30d, 0) AS nb_failed_digital_events_30d
 
 FROM customers c
 LEFT JOIN account_features a USING (customer_id)
@@ -136,4 +172,5 @@ LEFT JOIN loan_features l USING (customer_id)
 LEFT JOIN card_features cd USING (customer_id)
 LEFT JOIN complaint_features cp USING (customer_id)
 LEFT JOIN interaction_features i USING (customer_id)
-LEFT JOIN offer_features o USING (customer_id);
+LEFT JOIN offer_features o USING (customer_id)
+LEFT JOIN digital_features d USING (customer_id);

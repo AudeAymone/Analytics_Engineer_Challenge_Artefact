@@ -38,3 +38,7 @@ SELECT * FROM read_xlsx('data/starter_dataset.xlsx', sheet = 'Complaints');
 
 CREATE OR REPLACE TABLE offers AS
 SELECT * FROM read_xlsx('data/starter_dataset.xlsx', sheet = 'Offers');
+
+-- Loads synthetic digital interaction events used to enrich engagement analysis.
+CREATE OR REPLACE TABLE digital_events AS
+SELECT * FROM read_csv_auto('data/digital_events.csv');

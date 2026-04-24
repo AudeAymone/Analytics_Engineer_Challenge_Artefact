@@ -19,6 +19,7 @@ The repository follows a simple analytics flow:
 3. Business-rule enrichment in `customer_360`.
 4. CSV export for downstream consumption.
 5. Dashboard consumption through Streamlit.
+6. Optional AI assistant consumption through a grounded question-answer layer.
 
 ## Modeling Choice
 
@@ -76,8 +77,23 @@ Examples of useful enrichment:
 - repayment history by installment
 - complaint text or call-center notes for unstructured analysis
 
-No additional synthetic data was materially added in the current repository.
-Instead, the project documents recommended enrichments and uses rule-based logic on the available dataset.
+The repository now includes one structured synthetic enrichment:
+
+- `data/digital_events.csv`
+
+This file simulates digital interaction events such as logins, transfers,
+bill payments, password resets, and card-management actions across mobile
+app and internet-banking channels.
+
+It is used to derive:
+
+- `nb_digital_events`
+- `last_digital_event_date`
+- `nb_digital_events_30d`
+- `nb_failed_digital_events_30d`
+
+These fields improve the credibility of the engagement view and make the
+`Digital Activation` recommendation more explicit.
 
 ## Business KPIs Covered
 
@@ -114,3 +130,20 @@ The most valuable next improvements would be:
 4. Introduce inferred business classes such as `High-Value At-Risk Customer`.
 5. Add unstructured service data for complaint theme analysis.
 6. Expose the modeled data to an assistant through MCP or a lightweight API layer.
+
+## AI Layer
+
+The repository now includes a lightweight AI layer through `ai_assistant.py`.
+
+Its role is to answer grounded business questions from the filtered
+`customer_360` dataset inside the Streamlit dashboard.
+
+Current design:
+
+- the assistant builds a compact summary from the filtered portfolio
+- it selects a small set of relevant customer rows
+- it sends that grounded context to Ollama when a local model is available
+- it falls back to local rule-based answers when no model server is available
+
+This is not a full MCP server, but it is a practical AI interface aligned
+with the optional AI objective of the brief.

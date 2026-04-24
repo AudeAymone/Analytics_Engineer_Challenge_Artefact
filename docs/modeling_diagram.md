@@ -22,6 +22,7 @@ flowchart LR
     A --> I[interactions]
     A --> J[complaints]
     A --> K[offers]
+    A --> P[digital_events]
 
     B --> L[customer_features]
     C --> L
@@ -31,6 +32,7 @@ flowchart LR
     I --> L
     J --> L
     K --> L
+    P --> L
 
     L --> M[customer_360]
     M --> N[outputs/customer_360.csv]

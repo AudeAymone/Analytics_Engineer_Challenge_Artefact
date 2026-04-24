@@ -39,7 +39,12 @@ Each row represents one customer.
 | mobile_app_active | Whether the customer uses mobile app |
 | internet_banking_active | Whether the customer uses internet banking |
 | mobile_money_linked | Whether mobile money is linked |
+| nb_digital_events | Number of synthetic digital events available for the customer |
+| last_digital_event_date | Most recent synthetic digital event date |
+| nb_digital_events_30d | Number of digital events in the last 30 days |
+| nb_failed_digital_events_30d | Number of failed digital events in the last 30 days |
 | is_digital_engaged | Derived flag indicating digital usage |
+| is_digitally_dormant | Derived flag indicating no recent digital activity |
 
 ---
 

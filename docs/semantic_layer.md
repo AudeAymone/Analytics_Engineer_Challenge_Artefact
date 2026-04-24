@@ -68,6 +68,10 @@ The semantic layer relies on the following aggregated metrics from `customer_fea
 | `nb_offers` | Total number of offers sent |
 | `nb_accepted_offers` | Number of accepted offers |
 | `total_expected_offer_value_xof` | Sum of expected offer value |
+| `nb_digital_events` | Total number of synthetic digital events |
+| `last_digital_event_date` | Most recent synthetic digital event date |
+| `nb_digital_events_30d` | Number of digital events in the last 30 days |
+| `nb_failed_digital_events_30d` | Number of failed digital events in the last 30 days |
 
 ## Derived Business Definitions
 
@@ -99,6 +103,15 @@ The field `is_digital_engaged` is `TRUE` when the customer uses at least one dig
 mobile_app_active = TRUE
 OR internet_banking_active = TRUE
 OR mobile_money_linked = TRUE
+OR nb_digital_events_30d > 0
+```
+
+### Digital Dormancy
+
+The field `is_digitally_dormant` is `TRUE` when the customer has no recent digital activity:
+
+```text
+nb_digital_events_30d = 0
 ```
 
 ### Churn Risk Segment

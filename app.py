@@ -9,6 +9,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from ai_assistant import answer_question
+
 DATA_PATH = "outputs/customer_360.csv"
 
 
@@ -283,6 +285,41 @@ def render_customer_detail(dataframe: pd.DataFrame) -> None:
     st.dataframe(customer_df.T, use_container_width=True)
 
 
+def render_ai_assistant(dataframe: pd.DataFrame) -> None:
+    """Render the grounded AI assistant section.
+
+    Args:
+        dataframe: Filtered Customer 360 dataset.
+    """
+    st.header("7. AI Assistant")
+    st.write(
+        "Ask a grounded business question about the filtered Customer 360 view. "
+        "If Ollama is running locally, the dashboard uses it. "
+        "Otherwise it falls back to local rule-based answers."
+    )
+    st.write("Suggested questions:")
+    st.markdown(
+        "- Which customers look healthy today but show early signs of churn?\n"
+        "- Which customers should the bank prioritize for a personal loan offer?\n"
+        "- Which customers should the bank prioritize for a card offer?\n"
+        "- Why is this customer flagged as at-risk?\n"
+        "- Why is this customer flagged as cross-sell eligible?\n"
+        "- What additional data would most improve the quality of the Customer 360 recommendations?"
+    )
+
+    question = st.text_area(
+        "Ask a question",
+        value="Which customers look healthy today but show early signs of churn?",
+        height=120,
+    )
+
+    if st.button("Ask the assistant", use_container_width=True):
+        with st.spinner("Generating grounded answer..."):
+            answer, mode = answer_question(dataframe, question)
+        st.caption(f"Answer mode: {mode}")
+        st.write(answer)
+
+
 def main() -> None:
     """Run the Streamlit dashboard."""
     configure_page()
@@ -299,6 +336,7 @@ def main() -> None:
     render_next_best_action(filtered_df)
     render_priority_customers(filtered_df)
     render_customer_detail(filtered_df)
+    render_ai_assistant(filtered_df)
 
 
 if __name__ == "__main__":
