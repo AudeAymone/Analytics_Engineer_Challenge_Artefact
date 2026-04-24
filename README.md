@@ -105,7 +105,7 @@ streamlit run app.py
 
 You can also access the deployed dashboard here:
 
-[Customer 360 Dashboard](https://analyticsengineerchallengeartefact-4e5qq4dehxfwj3kuztvdwm.streamlit.app/)
+[Customer 360 Dashboard](https://analyticsengineerchallengeartefact-exmsvbvujn4jey8yrvunb6.streamlit.app/)
 
 The dashboard includes:
 
